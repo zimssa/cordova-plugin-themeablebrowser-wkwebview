@@ -38,13 +38,15 @@ This plugin launches an in-app web view on top the existing [CordovaWebView](htt
         },
         title: {
             color: '#003264ff',
-            showPageTitle: true
+            showPageTitle: true,
+            size: 17
         },
         backButton: {
             image: 'back',
             imagePressed: 'back_pressed',
             align: 'left',
-            event: 'backPressed'
+            event: 'backPressed',
+            showFirstTime: false
         },
         forwardButton: {
             image: 'forward',
@@ -122,11 +124,13 @@ In addition to InAppBrowser's properties, following properties were added to ful
     + `color` sets title text color in RGBA web hex format. eg. `#fff0f0ff`. Default to black.
     + `staticText` sets static text for title. This property overrides `showPageTitle` (see below).
     + `showPageTitle` when set to true, title of the current web page will be shown.
+    + `size` set font-size for title.
 + `backButton`
     + `image` sets image for back button. This property references to a **native** image resource, therefore it is platform dependent.
     + `imagePressed` sets image for back button in its pressed state. This property references to a **native** image resource, therefore it is platform dependent.
     + `align` aligns back button to either `left` or `right`. Default to `left`.
     + `event` raises an custom event with given text as event name when back button is pressed. Optional.
+    + 'showFirstTime' to show/hide back button at first time. (default = true).
 + `forwardButton`
     + `image` sets image for forward button. This property references to a **native** image resource, therefore it is platform dependent.
     + `imagePressed` sets image for forward button in its pressed state. This property references to a **native** image resource, therefore it is platform dependent.
