@@ -368,7 +368,6 @@ const float MyFinalProgressValue = 0.9f;
         }
     });
 }
-
 - (void)hide:(CDVInvokedUrlCommand*)command
 {
     /*

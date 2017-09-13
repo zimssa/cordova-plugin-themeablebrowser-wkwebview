@@ -72,14 +72,14 @@
 @property (nonatomic, copy) NSString* callbackId;
 @property (nonatomic, copy) NSRegularExpression *callbackIdPattern;
 
- - (CDVThemeableBrowserOptions*)parseOptions:(NSString*)options;
- - (void)open:(CDVInvokedUrlCommand*)command;
- - (void)close:(CDVInvokedUrlCommand*)command;
- - (void)injectScriptCode:(CDVInvokedUrlCommand*)command;
- - (void)show:(CDVInvokedUrlCommand*)command;
- - (void)hide:(CDVInvokedUrlCommand*)command;
- - (void)show:(CDVInvokedUrlCommand*)command withAnimation:(BOOL)animated;
- - (void)reload:(CDVInvokedUrlCommand*)command;
+- (CDVThemeableBrowserOptions*)parseOptions:(NSString*)options;
+- (void)open:(CDVInvokedUrlCommand*)command;
+- (void)close:(CDVInvokedUrlCommand*)command;
+- (void)injectScriptCode:(CDVInvokedUrlCommand*)command;
+- (void)show:(CDVInvokedUrlCommand*)command;
+- (void)show:(CDVInvokedUrlCommand*)command withAnimation:(BOOL)animated;
+- (void)hide:(CDVInvokedUrlCommand*)command;
+- (void)reload:(CDVInvokedUrlCommand*)command;
 
 @end
 
