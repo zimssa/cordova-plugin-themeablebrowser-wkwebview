@@ -46,6 +46,8 @@
 #define    kThemeableBrowserPropShowPageTitle @"showPageTitle"
 #define    kThemeableBrowserPropProgressBgColor @"progressBgColor"
 #define    kThemeableBrowserPropProgressColor @"progressColor"
+#define    kThemeableBrowserPropProgressBgColor @"progressBgColor"
+#define    kThemeableBrowserPropProgressColor @"progressColor"
 #define    kThemeableBrowserPropAlign @"align"
 #define    kThemeableBrowserPropTitle @"title"
 #define    kThemeableBrowserPropCancel @"cancel"
@@ -718,14 +720,8 @@ const float MyFinalProgressValue = 0.9f;
      NSUInteger loadingCount;
      NSUInteger maxLoadCount;
     
-     /**
-      *  当前加载的url -- 判断url是否重定向
-      */
      NSURL *currentURL;
      
-     /**
-      *  当前加载的进度
-      */
      CGFloat currentLoadProgress;
      
      BOOL interactive;
@@ -1571,6 +1567,8 @@ const float MyFinalProgressValue = 0.9f;
     // loading url, start spinner
     
     self.addressLabel.text = NSLocalizedString(@"Loading...", nil);
+    loadingCount++;
+    maxLoadCount = fmax(maxLoadCount, loadingCount);
 
     loadingCount++;
     maxLoadCount = fmax(maxLoadCount, loadingCount);
@@ -1699,12 +1697,6 @@ const float MyFinalProgressValue = 0.9f;
     }
 }
 
-/**
- *  进度结果处理 -- 阀门掌控、数据委托
- *
- *  @param progress 进度值
- *  @param webView  当前使用的webView
- */
 -(void)setprogress:(CGFloat)progress webView:(UIWebView *)webView
 {
     
@@ -1731,9 +1723,6 @@ const float MyFinalProgressValue = 0.9f;
     [self.progressView setProgress:0 animated:NO];
 }
 
-/**
- *  重置
- */
 - (void)reset:(UIWebView *)webView
 {
     maxLoadCount = loadingCount = 0;
@@ -1741,11 +1730,6 @@ const float MyFinalProgressValue = 0.9f;
     [self setprogress:0.0 webView:webView];
 }
 
-/**
- *  开始加载的进度数值
- *
- *  @param webView 当前使用的webView
- */
 - (void)startProgress:(UIWebView *)webView
 {
     if (currentLoadProgress < MyInitialProgressValue)
@@ -1756,9 +1740,8 @@ const float MyFinalProgressValue = 0.9f;
 }
 
 /**
- *  结束加载的进度数值
  *
- *  @param webView 当前使用的webView
+ *  @param webView webView
  */
 - (void)completeProgress:(UIWebView *)webView
 {
@@ -1778,7 +1761,6 @@ const float MyFinalProgressValue = 0.9f;
 }
 
 /**
- *  set方法，获取readonly的currentProgress数值
  *
  *  @return currentProgress
  */
