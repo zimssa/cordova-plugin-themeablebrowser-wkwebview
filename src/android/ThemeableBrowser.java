@@ -1628,6 +1628,12 @@ public class ThemeableBrowser extends CordovaPlugin {
         public String progressColor;
     }
 
+     private static class BrowserProgress {
+        public boolean showProgress;
+        public String progressBgColor;
+        public String progressColor;
+    }
+
     private static class Toolbar {
         public int height = TOOLBAR_DEF_HEIGHT;
         public String color;
