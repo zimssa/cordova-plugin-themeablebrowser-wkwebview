@@ -1502,6 +1502,7 @@ const float MyFinalProgressValue = 0.9f;
     }
 }
 
+
 - (CGFloat) getFloatFromDict:(NSDictionary*)dict withKey:(NSString*)key withDefault:(CGFloat)def
 {
     CGFloat result = def;
