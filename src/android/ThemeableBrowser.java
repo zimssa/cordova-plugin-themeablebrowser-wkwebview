@@ -49,6 +49,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.webkit.CookieManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
@@ -72,7 +73,6 @@ import org.apache.cordova.LOG;
 import org.apache.cordova.PluginManager;
 import org.apache.cordova.PluginResult;
 import org.apache.cordova.Whitelist;
-import org.apache.cordova.inappbrowser.InAppBrowser;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -94,6 +94,7 @@ public class ThemeableBrowser extends CordovaPlugin {
     private static final String LOAD_START_EVENT = "loadstart";
     private static final String LOAD_STOP_EVENT = "loadstop";
     private static final String LOAD_ERROR_EVENT = "loaderror";
+    private static final String MESSAGE_EVENT = "message";
 
     private static final String ALIGN_LEFT = "left";
     private static final String ALIGN_RIGHT = "right";
@@ -838,6 +839,24 @@ public class ThemeableBrowser extends CordovaPlugin {
                 settings.setDisplayZoomControls(false);
                 settings.setPluginState(android.webkit.WebSettings.PluginState.ON);
 
+                // Add JS interface
+                class JsObject {
+                    @JavascriptInterface
+                    public void postMessage(String data) {
+                        try {
+                            JSONObject obj = new JSONObject();
+                            obj.put("type", MESSAGE_EVENT);
+                            obj.put("data", new JSONObject(data));
+                            sendUpdate(obj, true);
+                        } catch (JSONException ex) {
+                            LOG.e(LOG_TAG, "data object passed to postMessage has caused a JSON error.");
+                        }
+                    }
+                }
+                if (Build.VERSION.SDK_INT >= 17){
+                    inAppWebView.addJavascriptInterface(new JsObject(), "cordova_iab");
+                }
+
                 //Toggle whether this is enabled or not!
                 Bundle appSettings = cordova.getActivity().getIntent().getExtras();
                 boolean enableDatabase = appSettings == null || appSettings.getBoolean("ThemeableBrowserStorageEnabled", true);
@@ -1395,6 +1414,11 @@ public class ThemeableBrowser extends CordovaPlugin {
 
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
+
+            // Alias the iOS webkit namespace for postMessage()
+            if (Build.VERSION.SDK_INT >= 17){
+                injectDeferredObject("window.webkit={messageHandlers:{cordova_iab:cordova_iab}}", null);
+            }
 
             try {
                 JSONObject obj = new JSONObject();
