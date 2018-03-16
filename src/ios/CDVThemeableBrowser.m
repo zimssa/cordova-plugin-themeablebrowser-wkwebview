@@ -79,6 +79,8 @@ const float MyFinalProgressValue = 0.9f;
     NSURL *initUrl;  // initial URL ThemeableBrowser opened with
     NSURL *originalUrl;
 }
+@property (nonatomic,strong) dispatch_source_t timer;
+
 @end
 
 @implementation CDVThemeableBrowser
@@ -121,6 +123,8 @@ const float MyFinalProgressValue = 0.9f;
               withMessage:@"Close called but already closed."];
         return;
     }
+    
+    dispatch_source_cancel(_timer);
     // Things are cleaned up in browserExit.
     [self.themeableBrowserViewController close];
 }
@@ -179,12 +183,33 @@ const float MyFinalProgressValue = 0.9f;
     
     [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    NSTimeInterval delayTime=3.0f;
+    NSTimeInterval timeInterval=1.0f;
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    _timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, queue);
+    dispatch_time_t startDelayTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayTime * NSEC_PER_SEC));
+    dispatch_source_set_timer(_timer, startDelayTime, timeInterval * NSEC_PER_SEC, 0.1 * NSEC_PER_SEC);
+    dispatch_source_set_event_handler(_timer, ^{
+        CDVPluginResult* pluginResult;
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    });
+    dispatch_resume(_timer);
 }
 
 - (void)reload:(CDVInvokedUrlCommand*)command
 {
     if (self.themeableBrowserViewController) {
         [self.themeableBrowserViewController reload];
+    }
+}
+
+- (void)changeButtonImage:(CDVInvokedUrlCommand *)command {
+    if (self.themeableBrowserViewController) {
+        NSInteger buttonIndex = [[command.arguments objectAtIndex:0] integerValue];
+        NSDictionary* buttonProps = [command.arguments objectAtIndex:1];;
+        [self.themeableBrowserViewController changeButtonImage:buttonIndex buttonProps:buttonProps];
     }
 }
 
