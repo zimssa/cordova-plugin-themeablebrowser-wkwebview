@@ -121,6 +121,8 @@ public class ThemeableBrowser extends CordovaPlugin {
 
     private ThemeableBrowserDialog dialog;
     private WebView inAppWebView;
+    private LinearLayout leftButtonContainer;
+    private LinearLayout rightButtonContainer;
     private EditText edittext;
     private CallbackContext callbackContext;
     
@@ -293,7 +295,12 @@ public class ThemeableBrowser extends CordovaPlugin {
             pluginResult.setKeepCallback(true);
             this.callbackContext.sendPluginResult(pluginResult);
         }
-        else {
+		else if (action.equals("changeButtonImage")) {
+            final int buttonIndex = args.getInt(0);
+            BrowserButton buttonProps = parseButtonProps(args.getString(1));
+            this.changeButtonImage(buttonIndex, buttonProps);
+        }
+		else {
             return false;
         }
         return true;
@@ -629,15 +636,17 @@ public class ThemeableBrowser extends CordovaPlugin {
                 }
 
                 // Left Button Container layout
-                LinearLayout leftButtonContainer = new LinearLayout(cordova.getActivity());
-                FrameLayout.LayoutParams leftButtonContainerParams = new FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+                leftButtonContainer = new LinearLayout(cordova.getActivity());
+                FrameLayout.LayoutParams leftButtonContainerParams = new FrameLayout.LayoutParams(
+                        LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
                 leftButtonContainerParams.gravity = Gravity.LEFT | Gravity.CENTER_VERTICAL;
                 leftButtonContainer.setLayoutParams(leftButtonContainerParams);
                 leftButtonContainer.setVerticalGravity(Gravity.CENTER_VERTICAL);
 
                 // Right Button Container layout
-                LinearLayout rightButtonContainer = new LinearLayout(cordova.getActivity());
-                FrameLayout.LayoutParams rightButtonContainerParams = new FrameLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+                rightButtonContainer = new LinearLayout(cordova.getActivity());
+                FrameLayout.LayoutParams rightButtonContainerParams = new FrameLayout.LayoutParams(
+                        LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
                 rightButtonContainerParams.gravity = Gravity.RIGHT | Gravity.CENTER_VERTICAL;
                 rightButtonContainer.setLayoutParams(rightButtonContainerParams);
                 rightButtonContainer.setVerticalGravity(Gravity.CENTER_VERTICAL);
@@ -1312,8 +1321,63 @@ public class ThemeableBrowser extends CordovaPlugin {
         }
     }
 
-    private Button createButton(BrowserButton buttonProps, String description,
-            View.OnClickListener listener) {
+    private void changeButtonImage(int buttonIndex, BrowserButton buttonProps) {
+        Resources activityRes = cordova.getActivity().getResources();
+        File file = new File("www", buttonProps.wwwImage);
+        InputStream is = null;
+        BitmapDrawable drawable;
+        Button view;
+        if (ALIGN_RIGHT.equals(buttonProps.align)) {
+            //rightButtonContainer
+            view = (Button) rightButtonContainer.getChildAt(buttonIndex);
+        } else {
+            //leftButtonContainer
+            view = (Button) leftButtonContainer.getChildAt(buttonIndex);
+        }
+
+        if (file != null) {
+            try {
+                is = cordova.getActivity().getAssets().open(file.getPath());
+                Bitmap bitmap = BitmapFactory.decodeStream(is);
+                bitmap.setDensity((int) (DisplayMetrics.DENSITY_MEDIUM * buttonProps.wwwImageDensity));
+                drawable = new BitmapDrawable(activityRes, bitmap);
+
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN) {
+                    view.setBackgroundDrawable(drawable);
+                } else {
+                    view.setBackground(drawable);
+                }
+            } catch (IOException ex) {
+                Log.e(LOG_TAG, ex.getMessage());
+            } finally {
+                try {
+                    is.close();
+                } catch (Exception e) {
+                }
+            }
+        }
+    }
+
+    private BrowserButton parseButtonProps(String buttonProps) {
+        BrowserButton result = null;
+        if (buttonProps != null && !buttonProps.isEmpty()) {
+            try {
+                result = ThemeableBrowserUnmarshaller.JSONToObj(buttonProps, BrowserButton.class);
+            } catch (Exception e) {
+                emitError(ERR_CRITICAL, String.format("Invalid JSON @s", e.toString()));
+            }
+        } else {
+            emitWarning(WRN_UNDEFINED, "No config was given.");
+        }
+
+        if (result == null) {
+            result = new BrowserButton();
+        }
+
+        return result;
+    }
+
+    private Button createButton(BrowserButton buttonProps, String description, View.OnClickListener listener) {
         Button result = null;
         if (buttonProps != null) {
             result = new Button(cordova.getActivity());

@@ -80,6 +80,7 @@
 - (void)show:(CDVInvokedUrlCommand*)command withAnimation:(BOOL)animated;
 - (void)hide:(CDVInvokedUrlCommand*)command;
 - (void)reload:(CDVInvokedUrlCommand*)command;
+- (void)changeButtonImage:(CDVInvokedUrlCommand*)command;
 
 @end
 
@@ -119,6 +120,7 @@
 @property (nonatomic) CGFloat titleOffset;
 
 @property (nonatomic , readonly , getter=loadProgress) CGFloat currentProgress;
+- (void)changeButtonImage:(int)buttonIndex buttonProps:(NSDictionary*)buttonProps;
 
  - (void)close;
  - (void)reload;
