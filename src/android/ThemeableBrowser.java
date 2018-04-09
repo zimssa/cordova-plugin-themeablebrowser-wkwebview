@@ -1414,7 +1414,11 @@ public class ThemeableBrowser extends CordovaPlugin {
 
         public void onPageFinished(WebView view, String url) {
             super.onPageFinished(view, url);
-
+            //candidoalbertosilva
+            // https://issues.apache.org/jira/browse/CB-11248
+            view.clearFocus();
+            view.requestFocus();
+            
             // Alias the iOS webkit namespace for postMessage()
             if (Build.VERSION.SDK_INT >= 17){
                 injectDeferredObject("window.webkit={messageHandlers:{cordova_iab:cordova_iab}}", null);
