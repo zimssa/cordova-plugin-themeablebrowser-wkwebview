@@ -836,6 +836,7 @@ const float MyFinalProgressValue = 0.9f;
     self.closeButton = [self createButton:_browserOptions.closeButton action:@selector(close) withDescription:@"close button"];
     self.backButton = [self createButton:_browserOptions.backButton action:@selector(goBack:) withDescription:@"back button"];
     self.forwardButton = [self createButton:_browserOptions.forwardButton action:@selector(goForward:) withDescription:@"forward button"];
+    self.reloadButton = [self createButton:_browserOptions.reloadButton action:@selector(doReload:) withDescription:@"reload button"];
     self.menuButton = [self createButton:_browserOptions.menu action:@selector(goMenu:) withDescription:@"menu button"];
     
     // Arramge toolbar buttons with respect to user configuration.
@@ -888,6 +889,18 @@ const float MyFinalProgressValue = 0.9f;
     if (self.forwardButton && ![kThemeableBrowserAlignRight isEqualToString:_browserOptions.forwardButton[kThemeableBrowserPropAlign]]) {
         CGFloat width = [self getWidthFromButton:self.forwardButton];
         [leftButtons addObject:self.forwardButton];
+        leftWidth += width;
+    }
+
+      if (self.reloadButton && [kThemeableBrowserAlignRight isEqualToString:_browserOptions.reloadButton[kThemeableBrowserPropAlign]]) {
+        CGFloat width = [self getWidthFromButton:self.reloadButton];
+        [rightButtons addObject:self.reloadButton];
+        rightWidth += width;
+    }
+    
+    if (self.reloadButton && ![kThemeableBrowserAlignRight isEqualToString:_browserOptions.reloadButton[kThemeableBrowserPropAlign]]) {
+        CGFloat width = [self getWidthFromButton:self.reloadButton];
+        [leftButtons addObject:self.reloadButton];
         leftWidth += width;
     }
     
@@ -1300,6 +1313,14 @@ const float MyFinalProgressValue = 0.9f;
     [self emitEventForButton:_browserOptions.forwardButton];
     
     [self.webView goForward];
+    [self updateButtonDelayed:self.webView];
+}
+
+- (void)doReload:(id)sender
+{
+    [self emitEventForButton:_browserOptions.reloadButton];
+    
+    [self.webView reload];
     [self updateButtonDelayed:self.webView];
 }
 
@@ -1844,6 +1865,7 @@ const float MyFinalProgressValue = 0.9f;
         self.title = nil;
         self.backButton = nil;
         self.forwardButton = nil;
+        self.reloadButton = nil;
         self.closeButton = nil;
         self.menu = nil;
         self.backButtonCanClose = NO;

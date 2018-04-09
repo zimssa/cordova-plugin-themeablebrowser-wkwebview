@@ -509,6 +509,12 @@ public class ThemeableBrowser extends CordovaPlugin {
         }
     }
 
+    private void doReload(){
+        if (this.inAppWebView != null && this.inAppWebView.canGoForward()) {
+            inAppWebView.reload();
+        }
+    }
+
     /**
      * Navigate to the new page
      *
@@ -668,8 +674,25 @@ public class ThemeableBrowser extends CordovaPlugin {
                     }
                 );
 
-                if (back != null) {
-                    back.setEnabled(false);
+                if (forward != null) {
+                    forward.setEnabled(false);
+                }
+
+                // reload button
+                final Button reloadBtn = createButton(
+                    features.reloadButton,
+                    "reload button",
+                    new View.OnClickListener() {
+                        public void onClick(View v) {
+                            emitButtonEvent(
+                                    features.reloadButton,
+                                    inAppWebView.getUrl());
+                            doReload();
+                        }
+                    }
+                );
+                if (reloadBtn != null) {
+                    reloadBtn.setEnabled(true);
                 }
 
 
@@ -966,6 +989,19 @@ public class ThemeableBrowser extends CordovaPlugin {
                     rightButtonContainer.addView(forward);
                     rightContainerWidth
                             += forward.getLayoutParams().width;
+                }
+
+                 if (reloadBtn != null && features.reloadButton != null
+                        && !ALIGN_RIGHT.equals(features.reloadButton.align)) {
+                    leftButtonContainer.addView(reloadBtn, 0);
+                    leftContainerWidth
+                            += reloadBtn.getLayoutParams().width;
+                }
+                if (reloadBtn != null && features.reloadButton != null
+                        && ALIGN_RIGHT.equals(features.reloadButton.align)) {
+                    rightButtonContainer.addView(reloadBtn);
+                    rightContainerWidth
+                            += reloadBtn.getLayoutParams().width;
                 }
 
                 if (menu != null) {
@@ -1541,6 +1577,7 @@ public class ThemeableBrowser extends CordovaPlugin {
         public BrowserButton backButton;
         public BrowserButton forwardButton;
         public BrowserButton closeButton;
+        public BrowserButton reloadButton;
         public BrowserMenu menu;
         public BrowserButton[] customButtons;
         public boolean backButtonCanClose;

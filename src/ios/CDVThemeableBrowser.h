@@ -51,6 +51,7 @@
  @property (nonatomic) NSDictionary* title;
  @property (nonatomic) NSDictionary* browserProgress;
  @property (nonatomic) NSDictionary* backButton;
+ @property (nonatomic) NSDictionary* reloadButton;
  @property (nonatomic) NSDictionary* forwardButton;
  @property (nonatomic) NSDictionary* closeButton;
  @property (nonatomic) NSDictionary* menu;
@@ -102,6 +103,7 @@
  @property (nonatomic, strong) IBOutlet UILabel* addressLabel;
  @property (nonatomic, strong) IBOutlet UILabel* titleLabel;
  @property (nonatomic, strong) IBOutlet UIButton* backButton;
+ @property (nonatomic, strong) IBOutlet UIButton* reloadButton;
  @property (nonatomic, strong) IBOutlet UIButton* forwardButton;
  @property (nonatomic, strong) IBOutlet UIButton* menuButton;
  @property (nonatomic, strong) IBOutlet UIActivityIndicatorView* spinner;
