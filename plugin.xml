@@ -67,4 +67,15 @@
 
         <framework src="CoreGraphics.framework" />
     </platform>
+    <!-- browser -->
+    <platform name="browser">
+        <js-module src="www/themeablebrowser.js" name="themeablebrowser">
+            <clobbers target="cordova.ThemeableBrowser" />
+        </js-module>
+        
+        <js-module src="src/browser/InAppBrowserProxy.js" name="InAppBrowserProxy">
+            <runs />
+        </js-module>
+    </platform>
+    
 </plugin>
