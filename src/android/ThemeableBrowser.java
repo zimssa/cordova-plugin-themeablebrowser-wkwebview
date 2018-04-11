@@ -77,6 +77,7 @@ import org.apache.cordova.LOG;
 import org.apache.cordova.PluginManager;
 import org.apache.cordova.PluginResult;
 import org.apache.cordova.Whitelist;
+import org.apache.cordova.inappbrowser.InAppBrowser;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -265,6 +266,16 @@ public class ThemeableBrowser extends CordovaPlugin {
                     }
                 });
             }
+        }else if (action.equals("hide")) {
+            this.cordova.getActivity().runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    dialog.hide();
+                }
+            });
+            PluginResult pluginResult = new PluginResult(PluginResult.Status.OK);
+            pluginResult.setKeepCallback(true);
+            this.callbackContext.sendPluginResult(pluginResult);
         }
         else {
             return false;
