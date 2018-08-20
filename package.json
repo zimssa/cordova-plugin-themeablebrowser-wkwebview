@@ -1,9 +1,9 @@
 {
-  "name": "cordova-plugin-themeablebrowser",
+  "name": "firefly-cordova-plugin-themeablebrowser",
   "version": "0.3.0",
   "description": "Cordova ThemeableBrowser Plugin",
   "cordova": {
-    "id": "cordova-plugin-themeablebrowser",
+    "id": "firefly-cordova-plugin-themeablebrowser",
     "platforms": [
       "android",
       "amazon-fireos",
