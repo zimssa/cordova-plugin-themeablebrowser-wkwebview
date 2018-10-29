@@ -1690,6 +1690,22 @@ public class ThemeableBrowser extends CordovaPlugin {
         }
     }
 
+    /**
+     * Called when the system is about to start resuming a previous activity.
+     */
+    @Override
+    public void onPause(boolean multitasking) {
+        if(inAppWebView != null) inAppWebView.onPause();
+    }
+
+    /**
+     * Called when the activity will start interacting with the user.
+     */
+    @Override
+    public void onResume(boolean multitasking) {
+        if(inAppWebView != null) inAppWebView.onResume();
+    }
+
 
     /**
      * A class to hold parsed option properties.
