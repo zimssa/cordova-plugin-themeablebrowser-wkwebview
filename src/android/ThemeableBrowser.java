@@ -1465,10 +1465,16 @@ public class ThemeableBrowser extends CordovaPlugin {
                     Log.e(LOG_TAG, "Error sending sms " + url + ":" + e.toString());
                 }
             } else if(resolvedActivities.size() > 0) {
-                customSchemeIntent.setFlags(Intent.URI_INTENT_SCHEME);
-                customSchemeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                cordova.getActivity().startActivity(customSchemeIntent);
-                closeDialog();
+                Log.e(LOG_TAG, "Starting custom intent: " + url);
+
+                try{
+                    customSchemeIntent.setFlags(Intent.URI_INTENT_SCHEME);
+                    customSchemeIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    cordova.getActivity().startActivity(customSchemeIntent);
+                    closeDialog();
+                } catch (Exception e) {
+                    Log.e(LOG_TAG, "Custom scheme exception: " + e.toString());
+                }
                 return true;
             }
             return false;
