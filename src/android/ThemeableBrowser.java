@@ -1404,7 +1404,15 @@ public class ThemeableBrowser extends CordovaPlugin {
          */
         @Override
         public boolean shouldOverrideUrlLoading(WebView webView, String url) {
-            if (url.startsWith(WebView.SCHEME_TEL)) {
+            // handle back to application redirect without processing url by webView
+            final Intent customSchemeIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+            final PackageManager packageManager = cordova.getActivity().getApplicationContext().getPackageManager();
+            final List<ResolveInfo> resolvedActivities = packageManager.queryIntentActivities(customSchemeIntent, 0);
+
+            String newloc = "";
+            if (url.startsWith("http:") || url.startsWith("https:") || url.startsWith("file:")) {
+                newloc = url;
+            } else if (url.startsWith(WebView.SCHEME_TEL)) {
                 try {
                     Intent intent = new Intent(Intent.ACTION_DIAL);
                     intent.setData(Uri.parse(url));
@@ -1453,6 +1461,10 @@ public class ThemeableBrowser extends CordovaPlugin {
                 } catch (android.content.ActivityNotFoundException e) {
                     Log.e(LOG_TAG, "Error sending sms " + url + ":" + e.toString());
                 }
+            } else if(resolvedActivities.size() > 0) {
+                cordova.getActivity().startActivity(customSchemeIntent);
+                closeDialog();
+                return true;
             }
             return false;
         }
