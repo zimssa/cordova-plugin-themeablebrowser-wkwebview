@@ -36,6 +36,8 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Browser;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.text.InputType;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
@@ -86,6 +88,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.List;
 
 @SuppressLint("SetJavaScriptEnabled")
 public class ThemeableBrowser extends CordovaPlugin {
