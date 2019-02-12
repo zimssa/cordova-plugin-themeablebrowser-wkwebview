@@ -81,6 +81,7 @@
 - (void)hide:(CDVInvokedUrlCommand*)command;
 - (void)reload:(CDVInvokedUrlCommand*)command;
 - (void)changeButtonImage:(CDVInvokedUrlCommand*)command;
+- (NSString*)getCurrentURL;
 
 @end
 
