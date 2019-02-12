@@ -26,6 +26,16 @@ The purpose of this plugin is to provide an in-app-browser that can also be conf
 
 This plugin launches an in-app web view on top the existing [CordovaWebView](https://github.com/apache/cordova-android/blob/master/framework/src/org/apache/cordova/CordovaWebView.java) by calling `cordova.ThemeableBrowser.open()`.
 
+Additions:
+* Added support for Override/AppendUserAgent in iOS, matching cordova-ios implementation https://github.com/initialxy/cordova-plugin-themeablebrowser/pull/72
+* ThemeableBrowser Title and Button Customization Update https://github.com/initialxy/cordova-plugin-themeablebrowser/pull/171
+* Fixed the bug with wrong webviewOffset (issue reported for iPhone X and other iOS devices) https://github.com/initialxy/cordova-plugin-themeablebrowser/pull/170
+* Show browser progress status bar https://github.com/initialxy/cordova-plugin-themeablebrowser/pull/149
+* Add changeButtonImage for custom buttons, and fixed event for custom button on ios https://github.com/initialxy/cordova-plugin-themeablebrowser/pull/179
+* iOS only - Changed currentURL to always execute JS (location.href) as getCurrentURL. Why? location.replace/angular/react style paging/browsing wasn't updating currentURL variable.
+
+
+
     // Keep in mind that you must add your own images to native resource.
     // Images below are for sample only. They are not imported by this plugin.
     cordova.ThemeableBrowser.open('http://apache.org', '_blank', {
