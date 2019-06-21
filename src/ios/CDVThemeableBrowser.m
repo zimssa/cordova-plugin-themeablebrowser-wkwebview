@@ -657,7 +657,7 @@ const float MyFinalProgressValue = 0.9f;
 {
     [self createIframeBridge];
     if (self.callbackId != nil) {
-        NSString* url = self.themeableBrowserViewController.currentURL;
+        NSString* url = self.themeableBrowserViewController.getCurrentURL;
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
                                                       messageAsDictionary:@{@"type":@"loadstop", @"url":url}];
         [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
@@ -673,7 +673,7 @@ const float MyFinalProgressValue = 0.9f;
 - (void)webView:(UIWebView*)theWebView didFailLoadWithError:(NSError*)error
 {
     if (self.callbackId != nil) {
-        NSString* url = self.themeableBrowserViewController.currentURL;
+        NSString* url = self.themeableBrowserViewController.getCurrentURL;
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
                                                       messageAsDictionary:@{@"type":@"loaderror", @"url":url, @"code": [NSNumber numberWithInteger:error.code], @"message": error.localizedDescription}];
         [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
@@ -1601,7 +1601,7 @@ const float MyFinalProgressValue = 0.9f;
         if (event) {
             NSMutableDictionary* dict = [NSMutableDictionary new];
             [dict setObject:event forKey:@"type"];
-            [dict setObject:self.navigationDelegate.themeableBrowserViewController.currentURL forKey:@"url"];
+            [dict setObject:self.navigationDelegate.themeableBrowserViewController.getCurrentURL forKey:@"url"];
             
             if (index) {
                 [dict setObject:index forKey:@"index"];
