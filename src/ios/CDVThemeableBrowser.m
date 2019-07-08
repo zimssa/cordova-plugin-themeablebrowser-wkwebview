@@ -44,6 +44,8 @@
 //#define    kThemeableBrowserPropShowPageTitle @"showPageTitle"
 #define    kThemeableBrowserPropShowProgress @"showProgress"
 #define    kThemeableBrowserPropShowPageTitle @"showPageTitle"
+#define    kThemeableBrowserPropSize @"size"
+#define    kThemeableBrowserPropShowFirstTime @"showFirstTime"
 #define    kThemeableBrowserPropProgressBgColor @"progressBgColor"
 #define    kThemeableBrowserPropProgressColor @"progressColor"
 #define    kThemeableBrowserPropAlign @"align"
@@ -61,6 +63,7 @@
 #define    TOOLBAR_DEF_HEIGHT 44.0
 #define    LOCATIONBAR_HEIGHT 21.0
 #define    FOOTER_HEIGHT ((TOOLBAR_HEIGHT) + (LOCATIONBAR_HEIGHT))
+#define    TAG_SALT 100
 
 NSString *completeRPCURLPath = @"/webviewprogressproxy/complete";
 
@@ -76,6 +79,8 @@ const float MyFinalProgressValue = 0.9f;
     NSURL *initUrl;  // initial URL ThemeableBrowser opened with
     NSURL *originalUrl;
 }
+@property (nonatomic,strong) dispatch_source_t timer;
+
 @end
 
 @implementation CDVThemeableBrowser
@@ -101,6 +106,11 @@ const float MyFinalProgressValue = 0.9f;
 }
 #endif
 
+- (id)settingForKey:(NSString*)key
+{
+    return [self.commandDelegate.settings objectForKey:[key lowercaseString]];
+}
+
 - (void)onReset
 {
     [self close:nil];
@@ -113,6 +123,8 @@ const float MyFinalProgressValue = 0.9f;
               withMessage:@"Close called but already closed."];
         return;
     }
+    
+    dispatch_source_cancel(_timer);
     // Things are cleaned up in browserExit.
     [self.themeableBrowserViewController close];
 }
@@ -171,12 +183,33 @@ const float MyFinalProgressValue = 0.9f;
     
     [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    NSTimeInterval delayTime=3.0f;
+    NSTimeInterval timeInterval=1.0f;
+    dispatch_queue_t queue = dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    _timer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, queue);
+    dispatch_time_t startDelayTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayTime * NSEC_PER_SEC));
+    dispatch_source_set_timer(_timer, startDelayTime, timeInterval * NSEC_PER_SEC, 0.1 * NSEC_PER_SEC);
+    dispatch_source_set_event_handler(_timer, ^{
+        CDVPluginResult* pluginResult;
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+    });
+    dispatch_resume(_timer);
 }
 
 - (void)reload:(CDVInvokedUrlCommand*)command
 {
     if (self.themeableBrowserViewController) {
         [self.themeableBrowserViewController reload];
+    }
+}
+
+- (void)changeButtonImage:(CDVInvokedUrlCommand *)command {
+    if (self.themeableBrowserViewController) {
+        NSInteger buttonIndex = [[command.arguments objectAtIndex:0] integerValue];
+        NSDictionary* buttonProps = [command.arguments objectAtIndex:1];;
+        [self.themeableBrowserViewController changeButtonImage:buttonIndex buttonProps:buttonProps];
     }
 }
 
@@ -247,9 +280,18 @@ const float MyFinalProgressValue = 0.9f;
     }
     
     if (self.themeableBrowserViewController == nil) {
-        NSString* originalUA = [CDVUserAgentUtil originalUserAgent];
+        NSString* userAgent = [CDVUserAgentUtil originalUserAgent];
+        NSString* overrideUserAgent = [self settingForKey:@"OverrideUserAgent"];
+        if (overrideUserAgent) {
+            userAgent = overrideUserAgent;
+        } else {
+            NSString* appendUserAgent = [self settingForKey:@"AppendUserAgent"];
+            if(appendUserAgent) {
+                userAgent = [userAgent stringByAppendingString: appendUserAgent];
+            }
+        }
         self.themeableBrowserViewController = [[CDVThemeableBrowserViewController alloc]
-                                               initWithUserAgent:originalUA prevUserAgent:[self.commandDelegate userAgent]
+                                               initWithUserAgent:userAgent prevUserAgent:[self.commandDelegate userAgent]
                                                browserOptions: browserOptions
                                                navigationDelete:self
                                                statusBarStyle:[UIApplication sharedApplication].statusBarStyle];
@@ -352,7 +394,6 @@ const float MyFinalProgressValue = 0.9f;
         }
     });
 }
-
 - (void)hide:(CDVInvokedUrlCommand*)command
 {
     /*
@@ -616,8 +657,7 @@ const float MyFinalProgressValue = 0.9f;
 {
     [self createIframeBridge];
     if (self.callbackId != nil) {
-        // TODO: It would be more useful to return the URL the page is actually on (e.g. if it's been redirected).
-        NSString* url = [self.themeableBrowserViewController.currentURL absoluteString];
+        NSString* url = self.themeableBrowserViewController.getCurrentURL;
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
                                                       messageAsDictionary:@{@"type":@"loadstop", @"url":url}];
         [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
@@ -633,7 +673,7 @@ const float MyFinalProgressValue = 0.9f;
 - (void)webView:(UIWebView*)theWebView didFailLoadWithError:(NSError*)error
 {
     if (self.callbackId != nil) {
-        NSString* url = [self.themeableBrowserViewController.currentURL absoluteString];
+        NSString* url = self.themeableBrowserViewController.getCurrentURL;
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR
                                                       messageAsDictionary:@{@"type":@"loaderror", @"url":url, @"code": [NSNumber numberWithInteger:error.code], @"message": error.localizedDescription}];
         [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
@@ -704,14 +744,8 @@ const float MyFinalProgressValue = 0.9f;
      NSUInteger loadingCount;
      NSUInteger maxLoadCount;
     
-     /**
-      *  当前加载的url -- 判断url是否重定向
-      */
      NSURL *currentURL;
      
-     /**
-      *  当前加载的进度
-      */
      CGFloat currentLoadProgress;
      
      BOOL interactive;
@@ -891,6 +925,11 @@ const float MyFinalProgressValue = 0.9f;
         }
     }
     
+    BOOL showFirstTime = [self getBoolFromDict:_browserOptions.backButton withKey:kThemeableBrowserPropShowFirstTime];
+    if (showFirstTime == false) {
+        self.backButton.hidden = YES;
+    }
+    
     // Back and forward buttons must be added with special ordering logic such
     // that back button is always on the left of forward button if both buttons
     // are on the same side.
@@ -932,12 +971,12 @@ const float MyFinalProgressValue = 0.9f;
     
     NSArray* customButtons = _browserOptions.customButtons;
     if (customButtons) {
-        NSInteger cnt = 0;
+        NSInteger cnt = [customButtons count]-1;
         // Reverse loop because we are laying out from outer to inner.
         for (NSDictionary* customButton in [customButtons reverseObjectEnumerator]) {
             UIButton* button = [self createButton:customButton action:@selector(goCustomButton:) withDescription:[NSString stringWithFormat:@"custom button at %ld", (long)cnt]];
             if (button) {
-                button.tag = cnt;
+                button.tag = cnt+TAG_SALT;
                 CGFloat width = [self getWidthFromButton:button];
                 if ([kThemeableBrowserAlignRight isEqualToString:customButton[kThemeableBrowserPropAlign]]) {
                     [rightButtons addObject:button];
@@ -948,7 +987,7 @@ const float MyFinalProgressValue = 0.9f;
                 }
             }
             
-            cnt += 1;
+            cnt -= 1;
         }
     }
     
@@ -980,6 +1019,11 @@ const float MyFinalProgressValue = 0.9f;
             self.titleLabel.text = _browserOptions.title[kThemeableBrowserPropStaticText];
         }
         
+        if (_browserOptions.title[kThemeableBrowserPropSize]) {
+            CGFloat textSize = [self getFloatFromDict:_browserOptions.title withKey:kThemeableBrowserPropSize withDefault:13.0];
+            self.titleLabel.font = [UIFont boldSystemFontOfSize:textSize];
+        }
+
         [self.toolbar addSubview:self.titleLabel];
     }
     
@@ -1301,6 +1345,17 @@ const float MyFinalProgressValue = 0.9f;
     [self.webView reload];
 }
 
+- (void)changeButtonImage:(NSInteger) buttonIndex buttonProps:(NSDictionary *)buttonProps {
+    
+    UIButton* button = (UIButton *)[self.toolbar viewWithTag:buttonIndex+TAG_SALT];
+    UIImage *image = [self getImage:buttonProps[kThemeableBrowserPropImage]
+                            altPath:buttonProps[kThemeableBrowserPropWwwImage]
+                         altDensity:[buttonProps[kThemeableBrowserPropWwwImageDensity] doubleValue]];
+    if(button && image){
+        [button setImage:image forState:UIControlStateNormal];
+    }
+}
+
 - (void)navigateTo:(NSURL*)url
 {
     NSURLRequest* request = [NSURLRequest requestWithURL:url];
@@ -1347,7 +1402,7 @@ const float MyFinalProgressValue = 0.9f;
 - (void)goCustomButton:(id)sender
 {
     UIButton* button = sender;
-    NSInteger index = button.tag;
+    NSInteger index = button.tag-TAG_SALT;
     [self emitEventForButton:_browserOptions.customButtons[index] withIndex:[NSNumber numberWithLong:index]];
 }
 
@@ -1493,6 +1548,7 @@ const float MyFinalProgressValue = 0.9f;
     }
 }
 
+
 - (CGFloat) getFloatFromDict:(NSDictionary*)dict withKey:(NSString*)key withDefault:(CGFloat)def
 {
     CGFloat result = def;
@@ -1509,6 +1565,14 @@ const float MyFinalProgressValue = 0.9f;
         result = dict[key];
     }
     return result;
+}
+
+- (NSString*) getCurrentURL
+{
+	NSString* result = [self.webView stringByEvaluatingJavaScriptFromString:@"location.href"];
+	self.currentURL = result;
+	
+	return result;
 }
 
 - (BOOL) getBoolFromDict:(NSDictionary*)dict withKey:(NSString*)key
@@ -1537,7 +1601,7 @@ const float MyFinalProgressValue = 0.9f;
         if (event) {
             NSMutableDictionary* dict = [NSMutableDictionary new];
             [dict setObject:event forKey:@"type"];
-            [dict setObject:[self.navigationDelegate.themeableBrowserViewController.currentURL absoluteString] forKey:@"url"];
+            [dict setObject:self.navigationDelegate.themeableBrowserViewController.getCurrentURL forKey:@"url"];
             
             if (index) {
                 [dict setObject:index forKey:@"index"];
@@ -1557,6 +1621,8 @@ const float MyFinalProgressValue = 0.9f;
     // loading url, start spinner
     
     self.addressLabel.text = NSLocalizedString(@"Loading...", nil);
+    loadingCount++;
+    maxLoadCount = fmax(maxLoadCount, loadingCount);
 
     loadingCount++;
     maxLoadCount = fmax(maxLoadCount, loadingCount);
@@ -1603,7 +1669,7 @@ const float MyFinalProgressValue = 0.9f;
 {
     // update url, stop spinner, update back/forward
     
-    self.addressLabel.text = [self.currentURL absoluteString];
+    self.addressLabel.text = self.getCurrentURL;
     [self updateButton:theWebView];
     
     if (self.titleLabel && _browserOptions.title
@@ -1685,12 +1751,6 @@ const float MyFinalProgressValue = 0.9f;
     }
 }
 
-/**
- *  进度结果处理 -- 阀门掌控、数据委托
- *
- *  @param progress 进度值
- *  @param webView  当前使用的webView
- */
 -(void)setprogress:(CGFloat)progress webView:(UIWebView *)webView
 {
     
@@ -1717,9 +1777,6 @@ const float MyFinalProgressValue = 0.9f;
     [self.progressView setProgress:0 animated:NO];
 }
 
-/**
- *  重置
- */
 - (void)reset:(UIWebView *)webView
 {
     maxLoadCount = loadingCount = 0;
@@ -1727,11 +1784,6 @@ const float MyFinalProgressValue = 0.9f;
     [self setprogress:0.0 webView:webView];
 }
 
-/**
- *  开始加载的进度数值
- *
- *  @param webView 当前使用的webView
- */
 - (void)startProgress:(UIWebView *)webView
 {
     if (currentLoadProgress < MyInitialProgressValue)
@@ -1742,9 +1794,8 @@ const float MyFinalProgressValue = 0.9f;
 }
 
 /**
- *  结束加载的进度数值
  *
- *  @param webView 当前使用的webView
+ *  @param webView webView
  */
 - (void)completeProgress:(UIWebView *)webView
 {
@@ -1764,7 +1815,6 @@ const float MyFinalProgressValue = 0.9f;
 }
 
 /**
- *  set方法，获取readonly的currentProgress数值
  *
  *  @return currentProgress
  */
@@ -1783,6 +1833,16 @@ const float MyFinalProgressValue = 0.9f;
 {
     if (self.backButton) {
         self.backButton.enabled = _browserOptions.backButtonCanClose || theWebView.canGoBack;
+        
+        BOOL showFirstTime = [self getBoolFromDict:_browserOptions.backButton withKey:kThemeableBrowserPropShowFirstTime];
+        if (showFirstTime == false) {
+            if(theWebView.canGoBack) {
+                self.backButton.hidden = NO;
+            }else {
+                self.backButton.hidden = YES;
+            }
+        }
+        
     }
     
     if (self.forwardButton) {
