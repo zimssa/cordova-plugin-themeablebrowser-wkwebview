@@ -1739,8 +1739,9 @@ public class ThemeableBrowser extends CordovaPlugin {
         public BrowserButton[] customButtons;
         public boolean backButtonCanClose;
         public boolean disableAnimation;
-        public boolean fullscreen;        
+        public boolean fullscreen;
         public BrowserProgress browserProgress;
+        public String customUserAgent;
     }
 
     private static class Event {

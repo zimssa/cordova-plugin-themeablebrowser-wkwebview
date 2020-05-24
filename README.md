@@ -103,7 +103,8 @@ Sample call/config:
           progressColor: '#FF5E00'
         },
         backButtonCanClose: true,
-        allowsBackForwardNavigationGestures: true
+        allowsBackForwardNavigationGestures: true,
+        customUserAgent: 'Mozilla/5.0 (Linux; Android 10.0.0; TEST) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Mobile Safari/537.36'
     }).addEventListener('backPressed', function(e) {
         alert('back pressed');
     }).addEventListener('helloPressed', function(e) {

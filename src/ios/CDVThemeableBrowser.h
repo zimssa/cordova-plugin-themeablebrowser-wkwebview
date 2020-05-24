@@ -67,6 +67,7 @@
 @property (nonatomic) BOOL disableAnimation;
 @property (nonatomic) BOOL fullscreen;
 @property (nonatomic) BOOL allowsBackForwardNavigationGestures;
+@property (nonatomic) NSString* customuseragent;
 
 @end
 
