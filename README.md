@@ -28,12 +28,13 @@ This plugin launches an in-app web view on top the existing [CordovaWebView](htt
 
 Additions:
 
-* Added support for Override/AppendUserAgent in iOS, matching cordova-ios implementation https://github.com/initialxy/cordova-plugin-themeablebrowser/pull/72
-* ThemeableBrowser Title and Button Customization Update https://github.com/initialxy/cordova-plugin-themeablebrowser/pull/171
-* Fixed the bug with wrong webviewOffset (issue reported for iPhone X and other iOS devices) https://github.com/initialxy/cordova-plugin-themeablebrowser/pull/170
-* Show browser progress status bar https://github.com/initialxy/cordova-plugin-themeablebrowser/pull/149
-* Add changeButtonImage for custom buttons, and fixed event for custom button on ios https://github.com/initialxy/cordova-plugin-themeablebrowser/pull/179
-* iOS only - Changed currentURL to always execute JS (location.href) as getCurrentURL. Why? location.replace/angular/react style paging/browsing wasn't updating currentURL variable.
+* replace UIWebview into Wkwebview https://github.com/initialxy/cordova-plugin-themeablebrowser/issues/187
+* Merging changes made with a fork https://github.com/grexican/cordova-plugin-themeablebrowser
+* Added option to enable swipe back / forward history.(iOS only)
+* Fixed a bug that is not displayed in full screen.
+* Fixed a bug that the link of new window cannot be displayed.
+* Fixed a bug that loadstart,message event does not work.
+* Fixed a bug that enableviewportscale and mediaplaybackrequiresuseraction properties do not work.
 
 Sample call/config:
 
@@ -96,7 +97,13 @@ Sample call/config:
                 }
             ]
         },
-        backButtonCanClose: true
+        browserProgress: {
+          showProgress: true,
+          progressBgColor: '#007e9c',
+          progressColor: '#FF5E00'
+        },
+        backButtonCanClose: true,
+        allowsBackForwardNavigationGestures: true
     }).addEventListener('backPressed', function(e) {
         alert('back pressed');
     }).addEventListener('helloPressed', function(e) {
@@ -167,15 +174,23 @@ In addition to InAppBrowser's properties, following properties were added to ful
     + `imagePressed` sets image for custom button in its pressed state. This property references to a **native** image resource, therefore it is platform dependent.
     + `align` aligns custom button to either `left` or `right`. Default to `left`.
     + `event` raises an custom event with given text as event name when custom button is pressed. The callbacks to custom button events will receive an event object that contains the following properties: `url` is the current URL shown in browser and `index` is the index of the selected button in `customButtons`.
++ `browserProgress` is a progress bar that displays the loading status of the page.
+    + `showProgress` sets the display of the progress bar. Default to `No`.
+    + `progressBgColor` sets the background color of the progress bar. Default to `#0000FF`.
+    + `progressColor` sets the color of the progress bar. Default to `#808080`.
 + `backButtonCanClose` allows back button to close browser when there's no more to go back. Otherwise, back button will be disabled.
 + `disableAnimation` when set to true, disables browser show and close animations.
 + `fullscreen` when set to `true`, WebView will expand to the full height of the app, going under the toolbar. This flag combined with transparent toolbar color could allow toolbar buttons to appear floating on top of the WebView. (Remember, this plugin supports RGBA color format.) Optional.
++ `allowsBackForwardNavigationGestures` when set to true, enable swipe back / forward history.
 
 All properties are optional with little default values. If a property is not given, its corresponding UI element will not be shown.
 
 One thing to note is that all image resources reference to **native** resource bundle. So all images need to be imported to native project first. In case of Android, the image name will be looked up under `R.drawable`. eg. If image name is `hello_world`, `R.drawable.hello_world` will be referenced.
 
 You may have noticed that ThemedBrowser added an optional menu as well as custom buttons, which you can utilize to respond to some simple user actions.
+
+** Other properties that are valid in inappbrowser should work, but I've confirmed that some properties do not.**
+**hidespinner,beforeload,etc**
 
 Experimental Properties
 -----------------------
