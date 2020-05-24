@@ -31,10 +31,7 @@
 //    //#import <Cordova/CDVWebViewDelegate.h>
 //#endif
 
-// ************** add[start] 2019/05/20
-// Fixed the message event to work.
 @class CDVWKInAppBrowserViewController;
-// ************** add[end]
 
 @interface CDVThemeableBrowserOptions : NSObject {}
 
@@ -48,10 +45,7 @@
 @property (nonatomic) NSString* transitionstyle;
 
 @property (nonatomic) BOOL zoom;
-// ************** add[start] 2019/05/20
-// Fix enableviewportscale to work.
 @property (nonatomic) BOOL enableviewportscale;
-// ************** add[end]
 @property (nonatomic) BOOL mediaplaybackrequiresuseraction;
 @property (nonatomic) BOOL allowinlinemediaplayback;
 @property (nonatomic) BOOL keyboarddisplayrequiresuseraction;
@@ -62,15 +56,9 @@
 @property (nonatomic) NSDictionary* statusbar;
 @property (nonatomic) NSDictionary* toolbar;
 @property (nonatomic) NSDictionary* title;
-// ************** add[start] 2019/05/20
-// Implementation of progress bar
 @property (nonatomic) NSDictionary* browserProgress;
-// ************** add[end]
 @property (nonatomic) NSDictionary* backButton;
-// ************** add[start] 2019/05/20
-// add reload button
 @property (nonatomic) NSDictionary* reloadButton;
-// ************** add[end]
 @property (nonatomic) NSDictionary* forwardButton;
 @property (nonatomic) NSDictionary* closeButton;
 @property (nonatomic) NSDictionary* menu;
@@ -78,20 +66,13 @@
 @property (nonatomic) BOOL backButtonCanClose;
 @property (nonatomic) BOOL disableAnimation;
 @property (nonatomic) BOOL fullscreen;
-// ************** add[start] 2019/05/20
-// Enable flip back / forward.
 @property (nonatomic) BOOL allowsBackForwardNavigationGestures;
-// ************** add[end]
 
 @end
 
 @class CDVThemeableBrowserViewController;
 
 @interface CDVThemeableBrowser : CDVPlugin <WKNavigationDelegate> {
-// ************** del[start] 2019/05/20
-// Fixed the message event to work.
-//     BOOL _injectedIframeBridge;
-// ************** del[end]
 }
 
 
@@ -105,25 +86,13 @@
 - (void)injectScriptCode:(CDVInvokedUrlCommand*)command;
 - (void)show:(CDVInvokedUrlCommand*)command;
 - (void)show:(CDVInvokedUrlCommand*)command withAnimation:(BOOL)animated;
-// ************** add[start] 2019/05/20
-// Implement hide method
 - (void)hide:(CDVInvokedUrlCommand*)command;
-// ************** add[end]
 - (void)reload:(CDVInvokedUrlCommand*)command;
-// ************** add[start] 2019/05/20
-// add changeButtonImage for custom buttons, and fixed event for custom button
 - (void)changeButtonImage:(CDVInvokedUrlCommand*)command;
-// ************** add[end]
 
 @end
 
-// ************** mod[start] 2019/05/20
-// Enable flip back / forward.
-// Fixed the message event to work.
-// Supports links that open in new windows or tabs.
-// @interface CDVThemeableBrowserViewController : UIViewController <WKNavigationDelegate,CDVScreenOrientationDelegate, UIActionSheetDelegate>{
 @interface CDVThemeableBrowserViewController : UIViewController <WKNavigationDelegate,CDVScreenOrientationDelegate, UIActionSheetDelegate, UIGestureRecognizerDelegate, WKScriptMessageHandler, WKUIDelegate>{
-// ************** mod[end]
     @private
     NSString* _userAgent;
     NSString* _prevUserAgent;
@@ -148,18 +117,12 @@
 @property (nonatomic, strong) IBOutlet UILabel* addressLabel;
 @property (nonatomic, strong) IBOutlet UILabel* titleLabel;
 @property (nonatomic, strong) IBOutlet UIButton* backButton;
-// ************** add[start] 2019/05/20
-// add reload button
 @property (nonatomic, strong) IBOutlet UIButton* reloadButton;
-// ************** add[end]
 @property (nonatomic, strong) IBOutlet UIButton* forwardButton;
 @property (nonatomic, strong) IBOutlet UIButton* menuButton;
 @property (nonatomic, strong) IBOutlet UIActivityIndicatorView* spinner;
 @property (nonatomic, strong) IBOutlet UIView* toolbar;
-// ************** add[start] 2019/05/20
-// Implementation of progress bar
 @property (nonatomic, strong) IBOutlet UIProgressView* progressView;
-// ************** add[end]
 
 @property (nonatomic, strong) NSArray* leftButtons;
 @property (nonatomic, strong) NSArray* rightButtons;
@@ -168,14 +131,8 @@
 @property (nonatomic, weak) CDVThemeableBrowser* navigationDelegate;
 @property (nonatomic) NSURL* currentURL;
 @property (nonatomic) CGFloat titleOffset;
-// ************** add[start] 2019/05/20
-// Implementation of progress bar
 @property (nonatomic , readonly , getter=loadProgress) CGFloat currentProgress;
-// ************** add[end]
-// ************** add[start] 2019/05/20
-// add changeButtonImage for custom buttons, and fixed event for custom button
 - (void)changeButtonImage:(int)buttonIndex buttonProps:(NSDictionary*)buttonProps;
-// ************** add[end]
 
 - (void)close;
 - (void)reload;
