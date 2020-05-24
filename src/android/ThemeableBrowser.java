@@ -941,7 +941,9 @@ public class ThemeableBrowser extends CordovaPlugin {
 
                 String overrideUserAgent = preferences.getString("OverrideUserAgent", null);
                 
-                if (overrideUserAgent != null) {
+                if (features.customUserAgent != null) {
+                    settings.setUserAgentString(features.customUserAgent);
+                } else if (overrideUserAgent != null) {
                     settings.setUserAgentString(overrideUserAgent);
                 } else {
                     String appendUserAgent = preferences.getString("AppendUserAgent", null);

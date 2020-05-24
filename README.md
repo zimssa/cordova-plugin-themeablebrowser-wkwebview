@@ -35,6 +35,7 @@ Additions:
 * Fixed a bug that the link of new window cannot be displayed.
 * Fixed a bug that loadstart,message event does not work.
 * Fixed a bug that enableviewportscale and mediaplaybackrequiresuseraction properties do not work.
+* Add customUserAgent Property
 
 Sample call/config:
 
@@ -183,6 +184,7 @@ In addition to InAppBrowser's properties, following properties were added to ful
 + `disableAnimation` when set to true, disables browser show and close animations.
 + `fullscreen` when set to `true`, WebView will expand to the full height of the app, going under the toolbar. This flag combined with transparent toolbar color could allow toolbar buttons to appear floating on top of the WebView. (Remember, this plugin supports RGBA color format.) Optional.
 + `allowsBackForwardNavigationGestures` when set to true, enable swipe back / forward history.　Default to `false`.
++ `customUserAgent` sets the UserAgent for WebView. (You can set a different value from OverrideUserAgent.)
 
 All properties are optional with little default values. If a property is not given, its corresponding UI element will not be shown.
 
