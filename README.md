@@ -175,7 +175,7 @@ In addition to InAppBrowser's properties, following properties were added to ful
     + `align` aligns custom button to either `left` or `right`. Default to `left`.
     + `event` raises an custom event with given text as event name when custom button is pressed. The callbacks to custom button events will receive an event object that contains the following properties: `url` is the current URL shown in browser and `index` is the index of the selected button in `customButtons`.
 + `browserProgress` is a progress bar that displays the loading status of the page.
-    + `showProgress` sets the display of the progress bar. Default to `No`.
+    + `showProgress` sets the display of the progress bar. Default to `false`.
     + `progressBgColor` sets the background color of the progress bar. Default to `#0000FF`.
     + `progressColor` sets the color of the progress bar. Default to `#808080`.
 + `backButtonCanClose` allows back button to close browser when there's no more to go back. Otherwise, back button will be disabled.
