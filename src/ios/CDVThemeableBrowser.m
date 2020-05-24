@@ -282,8 +282,8 @@
     if (self.themeableBrowserViewController == nil) {
         NSString* userAgent = [CDVUserAgentUtil originalUserAgent];
         NSString* overrideUserAgent = [self settingForKey:@"OverrideUserAgent"];
-        if (browserOptions.customuseragent) {
-            userAgent = browserOptions.customuseragent;
+        if (browserOptions.customUserAgent) {
+            userAgent = browserOptions.customUserAgent;
         } else if (overrideUserAgent) {
             userAgent = overrideUserAgent;
         } else {
