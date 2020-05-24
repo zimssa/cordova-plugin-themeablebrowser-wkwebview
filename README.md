@@ -181,7 +181,7 @@ In addition to InAppBrowser's properties, following properties were added to ful
 + `backButtonCanClose` allows back button to close browser when there's no more to go back. Otherwise, back button will be disabled.
 + `disableAnimation` when set to true, disables browser show and close animations.
 + `fullscreen` when set to `true`, WebView will expand to the full height of the app, going under the toolbar. This flag combined with transparent toolbar color could allow toolbar buttons to appear floating on top of the WebView. (Remember, this plugin supports RGBA color format.) Optional.
-+ `allowsBackForwardNavigationGestures` when set to true, enable swipe back / forward history.
++ `allowsBackForwardNavigationGestures` when set to true, enable swipe back / forward history.　Default to `false`.
 
 All properties are optional with little default values. If a property is not given, its corresponding UI element will not be shown.
 
@@ -189,7 +189,7 @@ One thing to note is that all image resources reference to **native** resource b
 
 You may have noticed that ThemedBrowser added an optional menu as well as custom buttons, which you can utilize to respond to some simple user actions.
 
-** Other properties that are valid in inappbrowser should work, but I've confirmed that some properties do not.**
+**Other properties that are valid in inappbrowser should work, but I've confirmed that some properties do not.**
 **hidespinner,beforeload,etc**
 
 Experimental Properties
