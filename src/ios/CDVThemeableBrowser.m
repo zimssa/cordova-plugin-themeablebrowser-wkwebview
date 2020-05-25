@@ -911,6 +911,9 @@
     self.webView.navigationDelegate = self;
 
     self.webView.backgroundColor = [UIColor whiteColor];
+    if (_browserOptions.customUserAgent) {
+        self.webView.customUserAgent = _browserOptions.customUserAgent;
+    }
 
     self.webView.clearsContextBeforeDrawing = YES;
     self.webView.clipsToBounds = YES;
