@@ -36,6 +36,7 @@ Additions:
 * Fixed a bug that loadstart,message event does not work.
 * Fixed a bug that enableviewportscale and mediaplaybackrequiresuseraction properties do not work.
 * Add customUserAgent Property
+* Fixed a bug that currentURL is overwritten by URL of inline frame
 
 Sample call/config:
 

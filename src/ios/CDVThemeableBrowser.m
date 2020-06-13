@@ -635,7 +635,6 @@
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
     
     NSURLRequest *request = navigationAction.request;
-    self.themeableBrowserViewController.currentURL = request.URL;
 
     NSURL* url = request.URL;
     NSURL* mainDocumentURL = request.mainDocumentURL;
@@ -674,6 +673,7 @@
         // external app
         shouldStart = NO;
     } else if ((self.callbackId != nil) && isTopLevelNavigation) {
+        self.themeableBrowserViewController.currentURL = request.URL;
         // Send a loadstart event for each top-level navigation (includes redirects).
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
                                                       messageAsDictionary:@{@"type":@"loadstart", @"url":[url absoluteString]}];
