@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-themeablebrowser-wkwebview",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Cordova ThemeableBrowser Plugin",
   "cordova": {
     "id": "cordova-plugin-themeablebrowser-wkwebview",
@@ -36,15 +36,18 @@
       "version": ">=3.1.0"
     }
   ],
-  "author": {
-    "name": "Apache Software Foundation"
-  },
-  "license": "Apache 2.0",
-  "gitHead": "23de7bf8f9bacaa0387d2e211e4b26376503ddda",
-  "readme": "",
-  "readmeFilename": "README.md",
+  "author": "Apache Software Foundation",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/tien271/cordova-plugin-themeablebrowser-wkwebview/issues"
   },
-  "homepage": "https://github.com/tien271/cordova-plugin-themeablebrowser-wkwebview#readme"
+  "homepage": "https://github.com/tien271/cordova-plugin-themeablebrowser-wkwebview#readme",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc",
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
 }

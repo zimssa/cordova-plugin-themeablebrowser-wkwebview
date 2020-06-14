@@ -21,7 +21,7 @@
 <plugin
       xmlns="http://apache.org/cordova/ns/plugins/1.0"
       id="cordova-plugin-themeablebrowser-wkwebview"
-      version="2.0.0">
+      version="2.1.0">
 
     <name>ThemeableBrowser</name>
     <description>Cordova ThemeableBrowser Plugin</description>
