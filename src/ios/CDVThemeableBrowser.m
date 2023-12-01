@@ -109,17 +109,19 @@
 
 - (BOOL) isSystemUrl:(NSURL*)url
 {
-  NSDictionary *systemUrls = @{
-    @"itunes.apple.com": @YES,
-    @"search.itunes.apple.com": @YES,
-    @"appsto.re": @YES
-  };
+    NSDictionary *systemUrls = @{
+        @"itunes.apple.com": @YES,
+        @"search.itunes.apple.com": @YES,
+        @"appsto.re": @YES,
+        @"apps.apple.com": @YES
+    };
 
-  if (systemUrls[[url host]]) {
-    return YES;
-  }
+    if (systemUrls[[url host]] ||
+        [[url host] rangeOfString:@"page.link"].location != NSNotFound) {
+        return YES;
+    }
 
-  return NO;
+    return NO;
 }
 
 - (void)open:(CDVInvokedUrlCommand*)command
@@ -131,7 +133,7 @@
     NSString* options = [command argumentAtIndex:2 withDefault:@"" andClass:[NSString class]];
 
     self.callbackId = command.callbackId;
-
+    
     if (url != nil) {
 #ifdef __CORDOVA_4_0_0
         NSURL* baseUrl = [self.webViewEngine URL];
@@ -139,21 +141,19 @@
         NSURL* baseUrl = [self.webView.request URL];
 #endif
         NSURL* absoluteUrl = [[NSURL URLWithString:url relativeToURL:baseUrl] absoluteURL];
-
         initUrl = absoluteUrl;
 
         if ([self isSystemUrl:absoluteUrl]) {
             target = kThemeableBrowserTargetSystem;
         }
-
+       
         if ([target isEqualToString:kThemeableBrowserTargetSelf]) {
             [self openInCordovaWebView:absoluteUrl withOptions:options];
         } else if ([target isEqualToString:kThemeableBrowserTargetSystem]) {
             [self openInSystem:absoluteUrl];
         } else { // _blank or anything else
             [self openInThemeableBrowser:absoluteUrl withOptions:options];
-        }
-
+        } 
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
     } else {
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:@"incorrect number of arguments"];
@@ -161,6 +161,7 @@
 
     [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+   
 }
 
 - (void)reload:(CDVInvokedUrlCommand*)command
@@ -235,6 +236,7 @@
             }
         }
     }
+    
 
     if (self.themeableBrowserViewController == nil) {
         NSString* originalUA = [CDVUserAgentUtil originalUserAgent];
@@ -563,8 +565,13 @@
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
     
     NSURLRequest *request = navigationAction.request;
-    self.themeableBrowserViewController.currentURL = request.URL;
-    decisionHandler(WKNavigationActionPolicyAllow);
+    if ([self isSystemUrl:request.URL] || navigationAction.targetFrame == nil) {
+        [[UIApplication sharedApplication] openURL:request.URL];
+        decisionHandler(WKNavigationActionPolicyCancel);
+    } else {
+        self.themeableBrowserViewController.currentURL = request.URL;
+        decisionHandler(WKNavigationActionPolicyAllow);
+    }
 }
 
 - (void)webView:(WKWebView *)webView didFinishNavigation:(WKNavigation *)navigation {
@@ -703,6 +710,8 @@
     [self.view sendSubviewToBack:self.webView];
 
     self.webView.navigationDelegate = self;
+    //mkkim: window.open 핸들링 추가
+    self.webView.UIDelegate = self;
 
     self.webView.backgroundColor = [UIColor whiteColor];
 
@@ -1175,6 +1184,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
+    _isClosing = FALSE;
 }
 
 - (void)viewDidUnload
@@ -1184,6 +1194,10 @@
     [super viewDidUnload];
 }
 
+- (void)viewDidDisappear:(BOOL)animated{
+    [self close];
+}
+
 - (UIStatusBarStyle)preferredStatusBarStyle
 {
     return _statusBarStyle;
@@ -1191,6 +1205,12 @@
 
 - (void)close
 {
+    //mkkim : walk around
+    if(_isClosing){
+        return;
+    }
+    _isClosing = TRUE;
+
     [self emitEventForButton:_browserOptions.closeButton];
 
     [CDVUserAgentUtil releaseLock:&_userAgentLockToken];
@@ -1218,7 +1238,23 @@
 
 - (void)navigateTo:(NSURL*)url
 {
-    NSURLRequest* request = [NSURLRequest requestWithURL:url];
+    NSMutableURLRequest* request = [NSMutableURLRequest requestWithURL:url];
+        
+    //mkkim: 짐싸 홈페이지 open 시 zimssa cookie를 세팅한다 : 인앱브라우저에서 볼때 상단 네비게이션 및 하단 푸터 없앤다 시작
+    NSString* domain = [url host];
+    if ([domain rangeOfString:@"zimssa.com"].location != NSNotFound) {
+        NSString* path = [url path];
+        NSMutableDictionary *cookieProperties = [NSMutableDictionary dictionary];
+        [cookieProperties setObject:@"zimssa_app" forKey:NSHTTPCookieName];
+        [cookieProperties setObject:@"1" forKey:NSHTTPCookieValue];
+        [cookieProperties setObject:domain forKey:NSHTTPCookieDomain];
+        [cookieProperties setObject:@"/" forKey:NSHTTPCookiePath];
+        NSHTTPCookie *zimssaCookie = [NSHTTPCookie cookieWithProperties:cookieProperties];
+        [[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookie:zimssaCookie];
+        [request setAllHTTPHeaderFields:[NSHTTPCookie requestHeaderFieldsWithCookies:[NSHTTPCookieStorage sharedHTTPCookieStorage].cookies]];
+        [request HTTPShouldHandleCookies];
+    }
+    //mkkim: 짐싸 홈페이지 open 시 zimssa cookie를 세팅한다 : 인앱브라우저에서 볼때 상단 네비게이션 및 하단 푸터 없앤다 끝
 
     if (_userAgentLockToken != 0) {
         [self.webView loadRequest:request];
@@ -1355,12 +1391,21 @@
 }
 
 - (void) rePositionViews {
+    CGFloat toolbarOffset = [self getStatusBarOffset];
     CGFloat toolbarHeight = [self getFloatFromDict:_browserOptions.toolbar withKey:kThemeableBrowserPropHeight withDefault:TOOLBAR_DEF_HEIGHT];
     CGFloat webviewOffset = _browserOptions.fullscreen ? 0.0 : toolbarHeight;
+    CGFloat webviewHeight = self.webView.frame.size.height;
+    
+    if (@available(iOS 13.0, *)) {
+        toolbarOffset = 0.0;
+    } else {
+        webviewOffset += [self getStatusBarOffset];
+        webviewHeight -= [self getStatusBarOffset];
+    }
 
     if ([_browserOptions.toolbarposition isEqualToString:kThemeableBrowserToolbarBarPositionTop]) {
-        [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, webviewOffset, self.webView.frame.size.width, self.webView.frame.size.height)];
-        [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, [self getStatusBarOffset], self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
+        [self.webView setFrame:CGRectMake(self.webView.frame.origin.x, webviewOffset, self.webView.frame.size.width, webviewHeight)];
+        [self.toolbar setFrame:CGRectMake(self.toolbar.frame.origin.x, toolbarOffset, self.toolbar.frame.size.width, self.toolbar.frame.size.height)];
     }
 
     CGFloat screenWidth = CGRectGetWidth(self.view.frame);
@@ -1429,6 +1474,22 @@
     }
 }
 
+#pragma mark WKUIDelegate
+//mkkim : 네이버 블로그 페이스북 window.open 이슈 수정
+- (WKWebView *)webView:(WKWebView *)webView createWebViewWithConfiguration:(WKWebViewConfiguration *)configuration forNavigationAction:(WKNavigationAction *)navigationAction windowFeatures:(WKWindowFeatures *)windowFeatures
+{
+    if (!navigationAction.targetFrame.isMainFrame) {
+        if ([[UIApplication sharedApplication] canOpenURL:navigationAction.request.URL]) {
+            // 팝업(새 창) 뜨는 경우 호출 (window.open 또는 target="_blank")
+            [[UIApplication sharedApplication] openURL:navigationAction.request.URL options:@{} completionHandler:nil];
+        }
+    }
+    return nil;
+}
+
+-(void)webViewDidClose:(WKWebView *)webView {
+    //팝업 닫히는 경우 호출
+}
 
 #pragma mark UIWebViewDelegate
 

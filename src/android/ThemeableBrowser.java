@@ -78,7 +78,7 @@ import org.apache.cordova.CordovaWebView;
 import org.apache.cordova.LOG;
 import org.apache.cordova.PluginManager;
 import org.apache.cordova.PluginResult;
-import org.apache.cordova.Whitelist;
+import org.apache.cordova.AllowList;
 import org.apache.cordova.inappbrowser.InAppBrowser;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -88,6 +88,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URISyntaxException;
 import java.util.List;
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -167,7 +168,7 @@ public class ThemeableBrowser extends CordovaPlugin {
                             shouldAllowNavigation = true;
                         }
                         if (shouldAllowNavigation == null) {
-                            shouldAllowNavigation = new Whitelist().isUrlWhiteListed(url);
+                            shouldAllowNavigation = new AllowList().isUrlAllowListed(url);
                         }
                         if (shouldAllowNavigation == null) {
                             try {
@@ -207,6 +208,10 @@ public class ThemeableBrowser extends CordovaPlugin {
                     }
                     // BLANK - or anything else
                     else {
+                         //짐싸 홈페이지 open 시 zimssa cookie를 세팅한다 : 인앱브라우저에서 볼때 상단 네비게이션 및 하단 푸터 없앤다
+                        if(url.contains("zimssa.com")) {
+                            CookieManager.getInstance().setCookie(url,"zimssa_app=1");
+                        }
                         result = showWebPage(url, features);
                     }
 
@@ -1513,6 +1518,27 @@ public class ThemeableBrowser extends CordovaPlugin {
             String newloc = "";
             if ((url.startsWith("http:") || url.startsWith("https:") || url.startsWith("file:")) && (!url.startsWith("http://play.google.com") && !url.startsWith("https://play.google.com"))) {
                 newloc = url;
+            } else if (url.startsWith("intent:")) {
+                try {
+                    Intent intent = Intent.parseUri(url, Intent.URI_INTENT_SCHEME);
+                    Intent existPackage = webView.getContext().getPackageManager().getLaunchIntentForPackage(intent.getPackage());
+                    Log.d(LOG_TAG, "intent parseuri  :" + Intent.parseUri(url, Intent.URI_INTENT_SCHEME));
+                    if (existPackage != null) {
+                        webView.getContext().startActivity(intent);
+                        return true;	//true를 리턴하면 WebView는 해당 URL을 렌더하지 않는다.
+                    } else  if (intent != null) {
+                        String fallbackUrl = intent.getStringExtra("browser_fallback_url");
+                        if (fallbackUrl != null) {
+                            webView.loadUrl(fallbackUrl);
+                            return true;
+                        }
+                    }
+                    openExternal(url);
+                    return true;
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             } else if (url.startsWith(WebView.SCHEME_TEL)) {
                 try {
                     Intent intent = new Intent(Intent.ACTION_DIAL);

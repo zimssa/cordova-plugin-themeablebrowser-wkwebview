@@ -84,13 +84,14 @@
 
 @end
 
-@interface CDVThemeableBrowserViewController : UIViewController <WKNavigationDelegate,CDVScreenOrientationDelegate, UIActionSheetDelegate>{
+@interface CDVThemeableBrowserViewController : UIViewController <WKNavigationDelegate, WKUIDelegate, CDVScreenOrientationDelegate, UIActionSheetDelegate>{
     @private
     NSString* _userAgent;
     NSString* _prevUserAgent;
     NSInteger _userAgentLockToken;
     UIStatusBarStyle _statusBarStyle;
     CDVThemeableBrowserOptions *_browserOptions;
+    BOOL _isClosing;
 
 //#ifdef __CORDOVA_4_0_0
 ////    kCDVWebViewEngineWKUIDelegate* _webViewDelegate;
