@@ -22,7 +22,6 @@
 #import <Cordova/CDVScreenOrientationDelegate.h>
 #import <WebKit/WebKit.h>
 #import <UIKit/UIKit.h>
-#import "CDVWKWebViewUIDelegate.h"
 
 //#ifdef __CORDOVA_4_0_0
 //    #import <Cordova/CDVUIWebViewDelegate.h>
@@ -130,7 +129,8 @@
 - (void)showToolBar:(BOOL)show : (NSString*) toolbarPosition;
 - (void)setCloseButtonTitle:(NSString*)title;
 
-- (id)initWithUserAgent:(NSString*)userAgent prevUserAgent:(NSString*)prevUserAgent browserOptions: (CDVThemeableBrowserOptions*) browserOptions navigationDelete:(CDVThemeableBrowser*) navigationDelegate statusBarStyle:(UIStatusBarStyle) statusBarStyle;
+// nryang : initWithUserAgent > initWithBrowserOptions 변경
+- (id)initWithBrowserOptions: (CDVThemeableBrowserOptions*) browserOptions navigationDelete:(CDVThemeableBrowser*) navigationDelegate statusBarStyle:(UIStatusBarStyle) statusBarStyle;
 
 + (UIColor *)colorFromRGBA:(NSString *)rgba;
 
@@ -141,4 +141,3 @@
 @property (nonatomic, weak) id <CDVScreenOrientationDelegate> orientationDelegate;
 
 @end
-

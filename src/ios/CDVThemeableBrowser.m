@@ -19,7 +19,6 @@
 
 #import "CDVThemeableBrowser.h"
 #import <Cordova/CDVPluginResult.h>
-#import <Cordova/CDVUserAgentUtil.h>
 
 #define    kThemeableBrowserTargetSelf @"_self"
 #define    kThemeableBrowserTargetSystem @"_system"
@@ -236,13 +235,10 @@
             }
         }
     }
-    
 
     if (self.themeableBrowserViewController == nil) {
-        NSString* originalUA = [CDVUserAgentUtil originalUserAgent];
         self.themeableBrowserViewController = [[CDVThemeableBrowserViewController alloc]
-                                               initWithUserAgent:originalUA prevUserAgent:[self.commandDelegate userAgent]
-                                               browserOptions: browserOptions
+                                               initWithBrowserOptions: browserOptions
                                                navigationDelete:self
                                                statusBarStyle:[UIApplication sharedApplication].statusBarStyle];
 
@@ -290,11 +286,11 @@
             }
         }
     }
-    
+
     // Todo: options need to be updated based on WKWebView which are not directly translatable from UIWebView
 
     // UIWebView options
-    
+
     //self.themeableBrowserViewController.webView.scalesPageToFit = browserOptions.zoom;
     //self.themeableBrowserViewController.webView.mediaPlaybackRequiresUserAction = browserOptions.mediaplaybackrequiresuseraction;
     //self.themeableBrowserViewController.webView.allowsInlineMediaPlayback = browserOptions.allowinlinemediaplayback;
@@ -664,15 +660,13 @@
 
 @synthesize currentURL;
 
-- (id)initWithUserAgent:(NSString*)userAgent prevUserAgent:(NSString*)prevUserAgent browserOptions: (CDVThemeableBrowserOptions*) browserOptions navigationDelete:(CDVThemeableBrowser*) navigationDelegate statusBarStyle:(UIStatusBarStyle) statusBarStyle
+// nryang : initWithUserAgent > initWithBrowserOptions 변경
+- (id)initWithBrowserOptions:(CDVThemeableBrowserOptions*) browserOptions navigationDelete:(CDVThemeableBrowser*) navigationDelegate statusBarStyle:(UIStatusBarStyle) statusBarStyle
 {
     self = [super init];
     if (self != nil) {
-        _userAgent = userAgent;
-        _prevUserAgent = prevUserAgent;
         _browserOptions = browserOptions;
         //_webViewDelegate = [[CDVWKWebViewUIDelegate alloc] init];
-        
 
 
 //#ifdef __CORDOVA_9_0_0
@@ -1011,14 +1005,6 @@
     return result;
 }
 
-- (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
-{
-    [super didRotateFromInterfaceOrientation:fromInterfaceOrientation];
-
-    // Reposition views.
-    [self rePositionViews];
-}
-
 - (void) setWebViewFrame : (CGRect) frame {
     [self.webView setFrame:frame];
 }
@@ -1190,7 +1176,6 @@
 - (void)viewDidUnload
 {
     [self.webView loadHTMLString:nil baseURL:nil];
-    [CDVUserAgentUtil releaseLock:&_userAgentLockToken];
     [super viewDidUnload];
 }
 
@@ -1213,7 +1198,6 @@
 
     [self emitEventForButton:_browserOptions.closeButton];
 
-    [CDVUserAgentUtil releaseLock:&_userAgentLockToken];
     self.currentURL = nil;
 
     if ((self.navigationDelegate != nil) && [self.navigationDelegate respondsToSelector:@selector(browserExit)]) {
@@ -1255,16 +1239,8 @@
         [request HTTPShouldHandleCookies];
     }
     //mkkim: 짐싸 홈페이지 open 시 zimssa cookie를 세팅한다 : 인앱브라우저에서 볼때 상단 네비게이션 및 하단 푸터 없앤다 끝
-
-    if (_userAgentLockToken != 0) {
-        [self.webView loadRequest:request];
-    } else {
-        [CDVUserAgentUtil acquireLock:^(NSInteger lockToken) {
-            _userAgentLockToken = lockToken;
-            [CDVUserAgentUtil setUserAgent:_userAgent lockToken:lockToken];
-            [self.webView loadRequest:request];
-        }];
-    }
+    
+    [self.webView loadRequest:request];
 }
 
 - (void)goBack:(id)sender
@@ -1630,15 +1606,6 @@ static void extracted(CDVThemeableBrowserViewController *object, WKWebView *theW
     return 1 << UIInterfaceOrientationPortrait;
 }
 
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    if ((self.orientationDelegate != nil) && [self.orientationDelegate respondsToSelector:@selector(shouldAutorotateToInterfaceOrientation:)]) {
-        return [self.orientationDelegate shouldAutorotateToInterfaceOrientation:interfaceOrientation];
-    }
-
-    return YES;
-}
-
 + (UIColor *)colorFromRGBA:(NSString *)rgba {
     unsigned rgbaVal = 0;
 
@@ -1720,15 +1687,6 @@ static void extracted(CDVThemeableBrowserViewController *object, WKWebView *theW
     }
 
     return 1 << UIInterfaceOrientationPortrait;
-}
-
-- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
-{
-    if ((self.orientationDelegate != nil) && [self.orientationDelegate respondsToSelector:@selector(shouldAutorotateToInterfaceOrientation:)]) {
-        return [self.orientationDelegate shouldAutorotateToInterfaceOrientation:interfaceOrientation];
-    }
-
-    return YES;
 }
 
 
