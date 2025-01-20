@@ -1509,18 +1509,18 @@
 //    return [self.navigationDelegate webViewDidStartLoad:theWebView];
 //}
 
-// - (BOOL)webView:(WKWebView*)theWebView shouldStartLoadWithRequest:(NSURLRequest*)request navigationType:(UIWebViewNavigationType)navigationType
-// {
+//- (BOOL)webView:(WKWebView*)theWebView shouldStartLoadWithRequest:(NSURLRequest*)request navigationType:(UIWebViewNavigationType)navigationType
+//{
 //    BOOL isTopLevelNavigation = [request.URL isEqual:[request mainDocumentURL]];
-
+//
 //    if (isTopLevelNavigation) {
 //        self.currentURL = request.URL;
 //    }
-
+//
 //    [self updateButtonDelayed:theWebView];
-
+//
 //    return [self.navigationDelegate webView:theWebView shouldStartLoadWithRequest:request navigationType:navigationType];
-// }
+//}
 
 //- (void)webViewDidFinishLoad:(UIWebView*)theWebView
 //{
