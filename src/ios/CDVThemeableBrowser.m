@@ -559,14 +559,41 @@
 
 
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
-    
     NSURLRequest *request = navigationAction.request;
-    if ([self isSystemUrl:request.URL] || navigationAction.targetFrame == nil) {
-        [[UIApplication sharedApplication] openURL:request.URL];
+    NSURL* url = request.URL;
+    NSURL* mainDocumentURL = request.mainDocumentURL;
+    BOOL isTopLevelNavigation = [url isEqual:mainDocumentURL];
+    BOOL shouldStart = YES;
+    
+    // if is an app store link, let the system handle it, otherwise it fails to load it
+    NSArray * allowedSchemes = @[@"itms-appss", @"itms-apps", @"tel", @"sms", @"mailto", @"geo"];
+    if ([allowedSchemes containsObject:[url scheme]]) {
+        [webView stopLoading];
+        [self openInSystem:url];
+        shouldStart = NO;
+    }
+    else if ((self.callbackId != nil) && isTopLevelNavigation) {
+        self.themeableBrowserViewController.currentURL = url;
+        // Send a loadstart event for each top-level navigation (includes redirects).
+        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
+                                                      messageAsDictionary:@{@"type":@"loadstart", @"url":[url absoluteString]}];
+        [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+        
+        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
+    }
+    
+    if(shouldStart){
+        // Fix GH-417 & GH-424: Handle non-default target attribute
+        // Based on https://stackoverflow.com/a/25713070/777265
+        if (!navigationAction.targetFrame){
+            [webView loadRequest:navigationAction.request];
+            decisionHandler(WKNavigationActionPolicyCancel);
+        }else{
+            originalUrl = url;
+            decisionHandler(WKNavigationActionPolicyAllow);
+        }
+    }else{
         decisionHandler(WKNavigationActionPolicyCancel);
-    } else {
-        self.themeableBrowserViewController.currentURL = request.URL;
-        decisionHandler(WKNavigationActionPolicyAllow);
     }
 }
 
