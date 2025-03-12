@@ -1531,6 +1531,14 @@ public class ThemeableBrowser extends CordovaPlugin {
                         if (fallbackUrl != null) {
                             webView.loadUrl(fallbackUrl);
                             return true;
+                        } else {
+                            // Play Store로 이동
+                            String packageName = intent.getPackage();
+                            if (packageName != null) {
+                                Uri playStoreUri = Uri.parse("market://details?id=" + packageName);
+                                Intent marketIntent = new Intent(Intent.ACTION_VIEW, playStoreUri);
+                                webView.getContext().startActivity(marketIntent);
+                            }
                         }
                     }
                     openExternal(url);
