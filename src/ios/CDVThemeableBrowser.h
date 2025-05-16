@@ -134,6 +134,8 @@
 
 + (UIColor *)colorFromRGBA:(NSString *)rgba;
 
+- (void)downloadPDFWithURL:(NSURL *)url fileName:(NSString *)fileName;
+
 @end
 
 @interface CDVThemeableBrowserNavigationController : UINavigationController
