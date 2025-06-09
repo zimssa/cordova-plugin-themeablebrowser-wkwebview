@@ -326,6 +326,9 @@
 
     _isShown = YES;
 
+    // 실행 로그 추가
+    NSLog(@"[ThemeableBrowser] 브라우저 실행됨: %@", self.themeableBrowserViewController.currentURL ? self.themeableBrowserViewController.currentURL : @"(URL 없음)");
+
     CDVThemeableBrowserNavigationController* nav = [[CDVThemeableBrowserNavigationController alloc]
                                    initWithRootViewController:self.themeableBrowserViewController];
     nav.orientationDelegate = self.themeableBrowserViewController;
@@ -677,6 +680,21 @@
     };
 
     [self emitEvent:event];
+}
+
+- (void)webView:(WKWebView *)webView
+    decidePolicyForNavigationResponse:(WKNavigationResponse *)navigationResponse
+    decisionHandler:(void (^)(WKNavigationResponsePolicy))decisionHandler
+{
+    NSString *mimeType = navigationResponse.response.MIMEType;
+    NSURL *url = navigationResponse.response.URL;
+    if ([mimeType isEqualToString:@"application/pdf"]) {
+        NSLog(@"[ThemeableBrowser] PDF 다운로드 트리거: %@", url);
+        [self.themeableBrowserViewController downloadPDFWithURL:url fileName:@"download.pdf"];
+        decisionHandler(WKNavigationResponsePolicyCancel);
+        return;
+    }
+    decisionHandler(WKNavigationResponsePolicyAllow);
 }
 
 @end
@@ -1654,6 +1672,46 @@ static void extracted(CDVThemeableBrowserViewController *object, WKWebView *theW
         green:(rgbaVal >> 16 & 0xFF) / 255.0f
         blue:(rgbaVal >> 8 & 0xFF) / 255.0f
         alpha:(rgbaVal & 0xFF) / 255.0f];
+}
+
+- (void)downloadPDFWithURL:(NSURL *)url fileName:(NSString *)fileName {
+    NSLog(@"[ThemeableBrowser] downloadPDFWithURL 호출됨: %@, fileName: %@", url, fileName);
+    WKWebsiteDataStore *dataStore = self.webView.configuration.websiteDataStore;
+    [dataStore.httpCookieStore getAllCookies:^(NSArray<NSHTTPCookie *> *cookies) {
+        NSURLSessionConfiguration *config = [NSURLSessionConfiguration defaultSessionConfiguration];
+        config.HTTPCookieStorage = [NSHTTPCookieStorage sharedHTTPCookieStorage];
+        for (NSHTTPCookie *cookie in cookies) {
+            [[NSHTTPCookieStorage sharedHTTPCookieStorage] setCookie:cookie];
+        }
+        NSURLSession *session = [NSURLSession sessionWithConfiguration:config];
+        NSURLSessionDownloadTask *task = [session downloadTaskWithURL:url completionHandler:^(NSURL *location, NSURLResponse *response, NSError *error) {
+            if (location) {
+                NSLog(@"[ThemeableBrowser] PDF 다운로드 완료: %@", location);
+                NSURL *destURL = [self moveDownloadedFile:location toFileName:fileName];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [self showShareSheetForFileAtURL:destURL];
+                });
+            } else {
+                NSLog(@"[ThemeableBrowser] PDF 다운로드 실패: %@", error);
+            }
+        }];
+        [task resume];
+    }];
+}
+
+- (NSURL *)moveDownloadedFile:(NSURL *)location toFileName:(NSString *)fileName {
+    NSString *tempDir = NSTemporaryDirectory();
+    NSString *destPath = [tempDir stringByAppendingPathComponent:fileName];
+    NSURL *destURL = [NSURL fileURLWithPath:destPath];
+    [[NSFileManager defaultManager] removeItemAtURL:destURL error:nil];
+    [[NSFileManager defaultManager] moveItemAtURL:location toURL:destURL error:nil];
+    return destURL;
+}
+
+- (void)showShareSheetForFileAtURL:(NSURL *)fileURL {
+    UIActivityViewController *activityVC = [[UIActivityViewController alloc] initWithActivityItems:@[fileURL] applicationActivities:nil];
+    activityVC.popoverPresentationController.sourceView = self.view;
+    [self presentViewController:activityVC animated:YES completion:nil];
 }
 
 @end
