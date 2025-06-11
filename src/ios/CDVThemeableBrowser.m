@@ -690,7 +690,21 @@
     NSURL *url = navigationResponse.response.URL;
     if ([mimeType isEqualToString:@"application/pdf"]) {
         NSLog(@"[ThemeableBrowser] PDF 다운로드 트리거: %@", url);
-        [self.themeableBrowserViewController downloadPDFWithURL:url fileName:@"download.pdf"];
+
+        // Content-Disposition에서 파일명 추출
+        NSString *fileName = @"download.pdf";
+        NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *)navigationResponse.response;
+        NSString *contentDisposition = httpResponse.allHeaderFields[@"Content-Disposition"];
+        if (contentDisposition) {
+            // filename="..." 또는 filename=... 추출
+            NSRegularExpression *regex = [NSRegularExpression regularExpressionWithPattern:@"filename=\"?([^\"]+)\"?" options:0 error:nil];
+            NSTextCheckingResult *match = [regex firstMatchInString:contentDisposition options:0 range:NSMakeRange(0, contentDisposition.length)];
+            if (match && [match numberOfRanges] > 1) {
+                fileName = [contentDisposition substringWithRange:[match rangeAtIndex:1]];
+            }
+        }
+
+        [self.themeableBrowserViewController downloadPDFWithURL:url fileName:fileName];
         decisionHandler(WKNavigationResponsePolicyCancel);
         return;
     }
