@@ -1213,8 +1213,17 @@ public class ThemeableBrowser extends CordovaPlugin {
                                     }
                                 }
                             };
-                            cordova.getActivity().registerReceiver(downloadReceiver,
-                                    new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+                            // Android 14+에서 플래그를 지정하여 SecurityException 방지
+                            if (Build.VERSION.SDK_INT >= 34) {
+                                cordova.getActivity().registerReceiver(
+                                        downloadReceiver,
+                                        new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE),
+                                        Context.RECEIVER_EXPORTED);
+                            } else {
+                                cordova.getActivity().registerReceiver(
+                                        downloadReceiver,
+                                        new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+                            }
                         }
 
                         Toast.makeText(cordova.getActivity(), "다운로드 시작: " + fileName, Toast.LENGTH_LONG).show();
